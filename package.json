@@ -1,0 +1,29 @@
+{
+  "name": "sdma-covid-scraper",
+  "version": "0.0.1",
+  "description": "A tool to scrape and save the daily covid data form the SDMA covid dashboard.",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "Seth Berrier",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.1"
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "csv-parse": "^4.16.3",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "google-spreadsheet": "^3.2.0",
+    "luxon": "^2.1.1",
+    "mongodb": "^4.1.4",
+    "node-cron": "^3.0.0"
+  }
+}
