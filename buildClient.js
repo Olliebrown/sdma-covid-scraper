@@ -10,9 +10,7 @@ if (process.argv.find((arg) => { return arg === 'dev' })) {
 const options = {
   bundle: true,
   outdir: './public',
-  entryPoints: [
-    './client/UserManagementPage.jsx'
-  ],
+  entryPoints: ['./client/Index.jsx'],
   sourcemap: _DEV_,
   minify: (!_DEV_),
   define: {

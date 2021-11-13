@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { runQuery, closeClient } from './dbConnect.js'
+import { runQuery, closeClient } from '../mongo/dbConnect.js'
 
 import CSVParse from 'csv-parse'
 import { DateTime } from 'luxon'

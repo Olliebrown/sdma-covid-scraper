@@ -5,6 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "node server/main.js",
+    "dev": "nodemon --watch server server/main.js",
     "build": "npm run client",
     "preclient": "rm -f ./public/*.js ./public/*.map",
     "client": "node buildClient.js",
@@ -32,8 +33,12 @@
     "eslint-plugin-react": "^7.27.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "nodemon": "^2.0.15",
+    "papaparse": "^5.3.1",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-swipeable-views": "^0.14.0",
+    "recharts": "^2.1.6",
+    "recoil": "^0.5.2"
   },
   "dependencies": {
     "axios": "^0.24.0",
@@ -43,6 +48,7 @@
     "google-spreadsheet": "^3.2.0",
     "luxon": "^2.1.1",
     "mongodb": "^4.1.4",
-    "node-cron": "^3.0.0"
+    "node-cron": "^3.0.0",
+    "react-csv-to-table": "0.0.4"
   }
 }
