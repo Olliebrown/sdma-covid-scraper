@@ -1,21 +1,39 @@
 {
   "name": "sdma-covid-scraper",
   "version": "0.0.1",
-  "description": "A tool to scrape and save the daily covid data form the SDMA covid dashboard.",
+  "description": "A tool to scrape, save, and explore the daily covid data form the SDMA covid dashboard.",
   "main": "src/main.js",
   "scripts": {
     "start": "node server/main.js",
+    "build": "npm run client",
+    "preclient": "rm -f ./public/*.js ./public/*.map",
+    "client": "node buildClient.js",
+    "clientdev": "nodemon -e js,jsx,json --watch client -- buildClient.js dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "author": "Seth Berrier",
   "license": "MIT",
+  "engines": {
+    "node": "14.x",
+    "npm": "6.x"
+  },
+  "private": true,
   "devDependencies": {
+    "@material-ui/core": "^4.12.3",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.60",
+    "esbuild": "^0.13.13",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.1"
+    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-react": "^7.27.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "nodemon": "^2.0.15",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "dependencies": {
     "axios": "^0.24.0",
