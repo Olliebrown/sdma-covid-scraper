@@ -87,6 +87,7 @@ export function parseCSVToData (csvData) {
 
         // Attempt to parse lastUpdated
         const lastUpdated = DateTime.fromFormat(lastUpdatedStr, 'LLLL dd, yyyy h:mm a')
+        lastUpdated.setZone('America/Chicago')
 
         // Resolve with the results
         return resolve({ lastUpdated, lastUpdatedStr, ...allData, notes })
@@ -98,7 +99,7 @@ export function parseCSVToData (csvData) {
 export function addToDB (data, csvData) {
   return new Promise((resolve, reject) => {
     runQuery((db) => {
-      db.collection('data').insertOne({ timestamp: new Date(), data, rawCsv: csvData })
+      db.collection('data').insertOne({ timestamp: DateTime.local(), data, rawCsv: csvData })
         .then((data) => { return resolve(data.insertedId) })
         .catch((err) => {
           console.error('Failed to save to DB', err)
