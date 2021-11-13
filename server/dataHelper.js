@@ -113,7 +113,6 @@ export function getLatestFromDB () {
     runQuery((db) => {
       db.collection('data').findOne({}, { sort: { timestamp: -1 } })
         .then((data) => {
-          console.log(data)
           return resolve(data)
         })
         .catch((err) => {
