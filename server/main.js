@@ -13,7 +13,7 @@ import { dataAsCSV, parseCSVToData, addToDB, getLatestFromDB } from './dataHelpe
 const DOC_ID = '1y7J0hskF47_lDYMmgDj57jLThMCfnwrG'
 
 // Retrieve the data on a regular interval
-cron.schedule('0 0,6,12,18 * * *', async () => {
+cron.schedule('0,30 * * * *', async () => {
   try {
     const csvData = await dataAsCSV(DOC_ID)
     const latestData = await getLatestFromDB()
