@@ -15,7 +15,7 @@ const router = new Express.Router()
 router.get('/list', (req, res) => {
   runQuery((db) => {
     db.collection('data').aggregate([
-      { $sort: { timestamp: -1 } },
+      { $sort: { 'data.lastUpdated': -1 } },
       {
         $project: {
           lastUpdated: '$data.lastUpdated',

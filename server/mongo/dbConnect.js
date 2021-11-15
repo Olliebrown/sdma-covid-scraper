@@ -37,9 +37,7 @@ export async function runQuery (queryCB) {
 export async function closeClient () {
   // Establish a connection (if not already)
   try {
-    if (client.isConnected()) {
-      await client.close()
-    }
+    await client.close()
   } catch (err) {
     console.error('Error disconnecting from mongo', err)
     throw (new Error('Failed to disconnect from mongodb'))

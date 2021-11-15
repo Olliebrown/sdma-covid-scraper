@@ -86,8 +86,11 @@ export function parseCSVToData (csvData) {
         }
 
         // Attempt to parse lastUpdated
-        const lastUpdated = DateTime.fromFormat(lastUpdatedStr, 'LLLL dd, yyyy h:mm a')
-        lastUpdated.setZone('America/Chicago')
+        const lastUpdated = DateTime.fromFormat(
+          lastUpdatedStr,
+          'LLLL dd, yyyy h:mm a',
+          { zone: 'America/Chicago', setZone: true }
+        )
 
         // Resolve with the results
         return resolve({ lastUpdated, lastUpdatedStr, ...allData, notes })
@@ -112,8 +115,24 @@ export function addToDB (data, csvData) {
 export function getLatestFromDB () {
   return new Promise((resolve, reject) => {
     runQuery((db) => {
-      db.collection('data').findOne({}, { sort: { timestamp: -1 } })
+      db.collection('data').findOne({}, { sort: { 'data.lastUpdated': -1 } })
         .then((data) => {
+          return resolve(data)
+        })
+        .catch((err) => {
+          console.error('Failed to retrieve latest entry from DB', err)
+          return reject(err)
+        })
+    })
+  })
+}
+
+export function getDataForDateFromDB (lastUpdated) {
+  return new Promise((resolve, reject) => {
+    runQuery((db) => {
+      db.collection('data').findOne({ 'data.lastUpdated': lastUpdated })
+        .then((data) => {
+          if (!data) { return resolve(null) }
           return resolve(data)
         })
         .catch((err) => {
