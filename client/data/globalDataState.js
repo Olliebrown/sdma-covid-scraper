@@ -62,31 +62,32 @@ export const CurrentDataState = selector({
         console.error(err)
         return null
       }
+    } else {
+      console.error('Date ID is null when looking for current data state')
+      return null
     }
   }
 })
 
 export const ParsedDataState = selector({
   key: 'ParsedDataState',
-  get: async ({ get }) => {
-    try {
-      const currentData = await get(CurrentDataState)
-      const output = Papa.parse(currentData.rawCsv, { delimiter: ',', header: false })
-      if (output.errors.length > 0) { throw new Error(output.errors.join(',')) }
-
-      // Remove trailing empty cells
-      const rows = output.data.map((row) => {
-        let last = row.length - 1
-        while (!row[last] && last > 0) { last-- }
-        if (last === 0 && !row[0]) return []
-        return row.slice(0, last + 1)
-      })
-
-      return rows
-    } catch (err) {
-      console.error('Failed to parse CSV')
-      console.error(err)
+  get: ({ get }) => {
+    // Get the data and parse it
+    const currentData = get(CurrentDataState)
+    const output = Papa.parse(currentData.rawCsv, { delimiter: ',', header: false })
+    if (output.errors.length > 0) {
+      console.error('Error parsing CSV')
+      console.error(output.errors.join(','))
       return null
     }
+
+    // Remove trailing empty cells
+    const rows = output.data.map((row) => {
+      let last = row.length - 1
+      while (!row[last] && last > 0) { last-- }
+      if (last === 0 && !row[0]) return []
+      return row.slice(0, last + 1)
+    })
+    return rows
   }
 })

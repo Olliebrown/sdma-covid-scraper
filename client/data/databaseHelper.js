@@ -20,6 +20,7 @@ export function getData (entryId) {
         if (response?.data) {
           return resolve(response.data)
         }
+        console.error('DB: Response is empty or invalid')
         return reject(new Error('Invalid or empty response'))
       })
       .catch((err) => { return reject(err) })

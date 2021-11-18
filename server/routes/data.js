@@ -52,6 +52,18 @@ router.get('/:id', (req, res) => {
         dataRecord.timestamp = (new Date(dataRecord?.timestamp).valueOf())
         dataRecord.data.lastUpdated = (new Date(dataRecord?.data?.lastUpdated).valueOf())
 
+        // Compute derived values
+        dataRecord.counts = {
+          '4K': Math.round(dataRecord.data['4K'].CurrentStudentExclusions / (dataRecord.data['4K'].PCTStudentsExcluded / 100)),
+          Downsville: Math.round(dataRecord.data.Downsville.CurrentStudentExclusions / (dataRecord.data.Downsville.PCTStudentsExcluded / 100)),
+          Knapp: Math.round(dataRecord.data.Knapp.CurrentStudentExclusions / (dataRecord.data.Knapp.PCTStudentsExcluded / 100)),
+          Oaklawn: Math.round(dataRecord.data.Oaklawn.CurrentStudentExclusions / (dataRecord.data.Oaklawn.PCTStudentsExcluded / 100)),
+          RiverHeights: Math.round(dataRecord.data.RiverHeights.CurrentStudentExclusions / (dataRecord.data.RiverHeights.PCTStudentsExcluded / 100)),
+          Wakanda: Math.round(dataRecord.data.Wakanda.CurrentStudentExclusions / (dataRecord.data.Wakanda.PCTStudentsExcluded / 100)),
+          MiddleSchool: Math.round(dataRecord.data.MiddleSchool.CurrentStudentExclusions / (dataRecord.data.MiddleSchool.PCTStudentsExcluded / 100)),
+          HighSchool: Math.round(dataRecord.data.HighSchool.CurrentStudentExclusions / (dataRecord.data.HighSchool.PCTStudentsExcluded / 100))
+        }
+
         // Return the data
         return res.send(dataRecord)
       })
