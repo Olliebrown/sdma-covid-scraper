@@ -6,7 +6,7 @@ import { ChartSeriesState, ChartSchoolsState } from '../data/globalChartState.js
 import { makeStyles } from '@material-ui/core/styles'
 
 import { Grid } from '@material-ui/core'
-import { DataEnableSelect } from './DataEnableSelect.jsx'
+import DataEnableSelect from './DataEnableSelect.jsx'
 
 const useStyles = makeStyles((theme) => ({
   upperGridStyle: {

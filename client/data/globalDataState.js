@@ -15,6 +15,7 @@ export const AvailableDatesState = atom({
   ]
 })
 
+// Current date or end date when examining a range
 export const ActiveDateIndexState = atom({
   key: 'ActiveDateIndexState',
   default: 0
@@ -69,6 +70,7 @@ export const CurrentDataState = selector({
   }
 })
 
+// Data used in the raw CSV tab
 export const ParsedDataState = selector({
   key: 'ParsedDataState',
   get: ({ get }) => {

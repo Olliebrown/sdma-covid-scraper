@@ -5,8 +5,8 @@ import { MenuItem, Select, FormControl, InputLabel } from '@material-ui/core'
 
 import { SelectDataShape } from '../data/globalChartState.js'
 
-export function DataEnableSelect (props) {
-  const { name, labelText, handleChange, entries } = props
+export default function DataEnableSelect (props) {
+  const { name, labelText, handleChange, entries, single, value } = props
   const handleChangeInternal = (event) => {
     if (handleChange) { handleChange(event) }
   }
@@ -20,9 +20,9 @@ export function DataEnableSelect (props) {
       <Select
         id={`${name}-dataSelect`}
         labelId={`${name}-dataSelectLabel`}
-        value={selectedValues}
+        value={single ? value : selectedValues}
         onChange={handleChangeInternal}
-        multiple
+        multiple={!single}
       >
         {entries.map((option) => (
           <MenuItem key={option.key} value={option.key}>{option.label}</MenuItem>
@@ -34,8 +34,10 @@ export function DataEnableSelect (props) {
 
 DataEnableSelect.propTypes = {
   name: PropTypes.string.isRequired,
+  value: PropTypes.string,
   labelText: PropTypes.string,
   handleChange: PropTypes.func,
+  single: PropTypes.bool,
   entries: PropTypes.arrayOf(
     PropTypes.shape(SelectDataShape)
   )
@@ -43,6 +45,8 @@ DataEnableSelect.propTypes = {
 
 DataEnableSelect.defaultProps = {
   labelText: 'Select Options',
+  value: '',
   handleChange: null,
-  entries: []
+  entries: [],
+  single: false
 }

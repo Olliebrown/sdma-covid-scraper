@@ -38,6 +38,47 @@ router.get('/list', (req, res) => {
   })
 })
 
+router.get('/between/:startDate/:endDate', (req, res) => {
+  // Validate the given dates
+  const startDate = new Date(parseInt(req.params.startDate))
+  const endDate = new Date(parseInt(req.params.endDate))
+  if (isNaN(startDate) || isNaN(endDate) || endDate < startDate) {
+    return res.status(400).send({ error: 'Bad request, invalid date range' })
+  }
+
+  // Attempt to locate the data
+  runQuery((db) => {
+    db.collection('data').find({
+      'data.lastUpdated': {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).sort({ 'data.lastUpdated': 1 }).toArray((err, docs) => {
+      // Check for errors
+      if (err) {
+        console.error('Failed to find data in range', startDate, 'to', endDate)
+        console.error(err)
+        return res.status(500).send({ error: 'Internal server error' })
+      }
+
+      // Check for empty response
+      if (!Array.isArray(docs) || docs.length === 0) {
+        console.error('No documents returned for range query')
+        return res.status(500).send({ error: 'No documents returned' })
+      }
+
+      // Sanitize the dates
+      docs.forEach((curDoc) => {
+        curDoc.timestamp = (new Date(curDoc?.timestamp)).valueOf()
+        curDoc.data.lastUpdated = (new Date(curDoc?.data?.lastUpdated)).valueOf()
+      })
+
+      // Return the data
+      return res.send(docs)
+    })
+  })
+})
+
 router.get('/:id', (req, res) => {
   // Validate the given id
   if (!ObjectId.isValid(req.params.id)) {
@@ -49,20 +90,8 @@ router.get('/:id', (req, res) => {
     db.collection('data').findOne({ _id: new ObjectId(req.params.id) })
       .then((dataRecord) => {
         // Sanitize the dates
-        dataRecord.timestamp = (new Date(dataRecord?.timestamp).valueOf())
-        dataRecord.data.lastUpdated = (new Date(dataRecord?.data?.lastUpdated).valueOf())
-
-        // Compute derived values
-        dataRecord.counts = {
-          '4K': Math.round(dataRecord.data['4K'].CurrentStudentExclusions / (dataRecord.data['4K'].PCTStudentsExcluded / 100)),
-          Downsville: Math.round(dataRecord.data.Downsville.CurrentStudentExclusions / (dataRecord.data.Downsville.PCTStudentsExcluded / 100)),
-          Knapp: Math.round(dataRecord.data.Knapp.CurrentStudentExclusions / (dataRecord.data.Knapp.PCTStudentsExcluded / 100)),
-          Oaklawn: Math.round(dataRecord.data.Oaklawn.CurrentStudentExclusions / (dataRecord.data.Oaklawn.PCTStudentsExcluded / 100)),
-          RiverHeights: Math.round(dataRecord.data.RiverHeights.CurrentStudentExclusions / (dataRecord.data.RiverHeights.PCTStudentsExcluded / 100)),
-          Wakanda: Math.round(dataRecord.data.Wakanda.CurrentStudentExclusions / (dataRecord.data.Wakanda.PCTStudentsExcluded / 100)),
-          MiddleSchool: Math.round(dataRecord.data.MiddleSchool.CurrentStudentExclusions / (dataRecord.data.MiddleSchool.PCTStudentsExcluded / 100)),
-          HighSchool: Math.round(dataRecord.data.HighSchool.CurrentStudentExclusions / (dataRecord.data.HighSchool.PCTStudentsExcluded / 100))
-        }
+        dataRecord.timestamp = (new Date(dataRecord?.timestamp)).valueOf()
+        dataRecord.data.lastUpdated = (new Date(dataRecord?.data?.lastUpdated)).valueOf()
 
         // Return the data
         return res.send(dataRecord)

@@ -80,6 +80,8 @@ export default function BarChartComponent (props) {
     }
   }
 
+  console.log(dataArray)
+
   return (
     <React.Fragment>
       <Grid item xs={4}>

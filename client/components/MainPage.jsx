@@ -9,6 +9,7 @@ import TabContent from './TabContent.jsx'
 import SDMAScrapeIcon from './SDMAScrapeIcon.jsx'
 import TabPanel from './TabPanel.jsx'
 import BarChartTab from './BarChartTab.jsx'
+import LineChartTab from './LineChartTab.jsx'
 import CSVTable from './CSVTable.jsx'
 import AboutTab from './AboutTab.jsx'
 
@@ -58,11 +59,7 @@ export default function InstructionsTabbed () {
   const tabContent = [
     <TabContent key={0}><BarChartTab /></TabContent>,
     <TabContent key={1}><BarChartTab stacked /></TabContent>,
-    <TabContent key={2}>
-      <Typography variant="h4" component="h2">
-        {'Historical data not yet available'}
-      </Typography>
-    </TabContent>,
+    <TabContent key={2}><LineChartTab /></TabContent>,
     <TabContent key={3}><CSVTable /></TabContent>,
     <TabContent key={4}><AboutTab /></TabContent>
   ]
