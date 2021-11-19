@@ -137,7 +137,7 @@ export default function BarChartComponent (props) {
               <CartesianGrid strokeDasharray='3 3' />
               <XAxis dataKey='name' angle={stacked ? 0 : -20} dy={stacked ? 0 : 20} height={stacked ? 40 : 80} />
               <YAxis domain={[0, (yAxisAuto ? 'auto' : yAxisMax)]} />
-              <Tooltip />
+              <Tooltip formatter={(value) => (xAxisDataType === 'perCapita' ? value.toFixed(2) : value.toString())} />
               <Legend />
               {stacked ?
                 enabledSchools.map((school, i) => (

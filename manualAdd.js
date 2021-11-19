@@ -14,24 +14,40 @@ async function manuallyAddData (filename) {
   try {
     const csvData = fs.readFileSync(filename, { encoding: 'utf8' })
     const fullJsonData = await parseCSVToData(csvData)
-    const existingData = await getDataForDateFromDB(fullJsonData.lastUpdated)
-    if (!existingData) {
-      await addToDB(fullJsonData, csvData)
+    if (fullJsonData.lastUpdated.invalid) {
+      console.error('Failed to parse last-updated date. Check data')
     } else {
-      console.error('Data already exists in database.')
-      console.error('To overwrite, delete the original data first.')
+      const existingData = await getDataForDateFromDB(fullJsonData.lastUpdated)
+      if (!existingData) {
+        await addToDB(fullJsonData, csvData)
+      } else {
+        console.error('Data already exists in database.')
+        console.error('To overwrite, delete the original data first.')
+      }
     }
   } catch (err) {
     console.error('Failed to read and save data.')
     console.error(err)
-  } finally {
+  }
+}
+
+async function processFiles () {
+  // Get filename(s) from parameters
+  if (process.argv.length < 3) {
+    console.error('Missing filename')
+  } else {
+    // Loop over all filenames
+    for (let i = 2; i < process.argv.length; i++) {
+      console.log(`Adding ${process.argv[i]} ...`)
+      try {
+        await manuallyAddData(process.argv[i])
+        console.log('Success\n')
+      } catch (err) {
+        console.error('Failed\n')
+      }
+    }
     await closeClient()
   }
 }
 
-// Get filename from parameters
-if (process.argv.length < 3) {
-  console.error('Missing filename')
-} else {
-  manuallyAddData(process.argv[2])
-}
+processFiles()

@@ -7,6 +7,13 @@ import { DateTime } from 'luxon'
 // Re-export closeClient
 export { closeClient }
 
+const FORMAT_STRINGS = [
+  'LLLL d, yyyy h:mm a',
+  'LLLL dd, yyyy h:mm a',
+  'LLLL d, h:mm a',
+  'LLLL dd, h:mm a'
+]
+
 export async function dataAsCSV (docID) {
   try {
     const response = await axios.get(`https://docs.google.com/spreadsheets/d/${docID}/export?format=csv`)
@@ -86,11 +93,16 @@ export function parseCSVToData (csvData) {
         }
 
         // Attempt to parse lastUpdated
-        const lastUpdated = DateTime.fromFormat(
-          lastUpdatedStr,
-          'LLLL dd, yyyy h:mm a',
-          { zone: 'America/Chicago', setZone: true }
-        )
+        let lastUpdated = null
+        let index = 0
+        do {
+          lastUpdated = DateTime.fromFormat(
+            lastUpdatedStr, FORMAT_STRINGS[index], {
+              zone: 'America/Chicago', setZone: true
+            }
+          )
+          index++
+        } while (lastUpdated?.invalid && index < FORMAT_STRINGS.length)
 
         // Resolve with the results
         return resolve({ lastUpdated, lastUpdatedStr, ...allData, notes })
