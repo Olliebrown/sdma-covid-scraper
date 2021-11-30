@@ -4,11 +4,22 @@ import MongoDB from 'mongodb'
 
 import { runQuery } from '../mongo/dbConnect.js'
 
+import { DateTime, Interval } from 'luxon'
+
 // Extract ObjectId for easy usage
 const { ObjectId } = MongoDB
 
 // Create a router to attach to an express server app
 const router = new Express.Router()
+
+// Generator for range of dates
+function * days (interval) {
+  let cursor = interval.start.startOf('day')
+  while (cursor <= interval.end) {
+    yield cursor
+    cursor = cursor.plus({ days: 1 })
+  }
+}
 
 // ******* API routes **************
 // List all data entries in the database
@@ -63,8 +74,7 @@ router.get('/between/:startDate/:endDate', (req, res) => {
 
       // Check for empty response
       if (!Array.isArray(docs) || docs.length === 0) {
-        console.error('No documents returned for range query')
-        return res.status(500).send({ error: 'No documents returned' })
+        return res.send([])
       }
 
       // Sanitize the dates
@@ -73,8 +83,36 @@ router.get('/between/:startDate/:endDate', (req, res) => {
         curDoc.data.lastUpdated = (new Date(curDoc?.data?.lastUpdated)).valueOf()
       })
 
+      // Pad the data with missing days
+      const interval = Interval.fromDateTimes(
+        DateTime.fromJSDate(startDate),
+        DateTime.fromJSDate(endDate)
+      )
+
+      const paddedDocs = []
+      let docIndex = 0
+      for (const d of days(interval)) {
+        // Remember length
+        const startLength = paddedDocs.length
+
+        // Add all docs that match the given day
+        let curDoc = docs[docIndex]
+        let lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
+        while (lastUpdated.startOf('day').toMillis() === d.toMillis()) {
+          paddedDocs.push(curDoc)
+          docIndex++
+          curDoc = docs[docIndex]
+          lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
+        }
+
+        // If none added, push a null
+        if (paddedDocs.length === startLength) {
+          paddedDocs.push(makeNullDoc(d))
+        }
+      }
+
       // Return the data
-      return res.send(docs)
+      return res.send(paddedDocs)
     })
   })
 })
@@ -103,5 +141,43 @@ router.get('/:id', (req, res) => {
       })
   })
 })
+
+const EMPTY_DATA = {
+  StudentCurrentPositive: null,
+  StudentClosedPositive: null,
+  CurrentStudentExclusions: null,
+  PCTStudentsExcluded: null,
+  StaffCurrentPositive: null,
+  StaffClosedPositive: null,
+  CurrentStaffExclusions: null
+}
+
+/**
+ * Make an empty document with a particular date
+ * @param {DateTime} date The date to use in the null doc
+ * @returns An object with the same structure as a DB doc but all empty data
+ */
+function makeNullDoc (date) {
+  return {
+    _id: null,
+    timestamp: 0,
+    data: {
+      lastUpdated: date.toMillis(),
+      lastUpdatedStr: date.toFormat('LLLL dd, yyyy h:mm a'),
+      '4K': EMPTY_DATA,
+      Downsville: EMPTY_DATA,
+      Knapp: EMPTY_DATA,
+      Oaklawn: EMPTY_DATA,
+      RiverHeights: EMPTY_DATA,
+      Wakanda: EMPTY_DATA,
+      MiddleSchool: EMPTY_DATA,
+      HighSchool: EMPTY_DATA,
+      TOTAL: EMPTY_DATA,
+      TOTALPERCENTAGE: EMPTY_DATA,
+      notes: []
+    },
+    rawCsv: ''
+  }
+}
 
 export default router

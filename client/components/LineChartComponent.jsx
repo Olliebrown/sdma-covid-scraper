@@ -39,7 +39,7 @@ export default function LineChartComponent (props) {
   const currentRangeData = useRecoilValue(CurrentRangeDataState)
   const enabledSchools = chartSchools.filter((school) => (school.enabled))
 
-  // Restructure the data (TODO: Adjust for line history)
+  // Restructure the data
   const dataArray = []
   if (Array.isArray(currentRangeData)) {
     currentRangeData.forEach((currentData) => {
