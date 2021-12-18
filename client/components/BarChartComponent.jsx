@@ -56,7 +56,7 @@ export default function BarChartComponent (props) {
         const match = enabledSchools.find((school) => (key === school.key))
         if (match) {
           newItem[match.key] = currentData.data[key][series.key]
-          if (xAxisDataType === 'perCapita') {
+          if (xAxisDataType === 'per100') {
             if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
               newItem[match.key] = 0
             } else {
@@ -72,7 +72,7 @@ export default function BarChartComponent (props) {
       const match = enabledSchools.find((series) => (key === series.key))
       if (match) {
         const newItem = { name: match.label, ...currentData.data[key] }
-        if (xAxisDataType === 'perCapita') {
+        if (xAxisDataType === 'per100') {
           for (const prop in newItem) {
             if (prop !== 'name' && typeof newItem[prop] === 'number') {
               if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
@@ -130,8 +130,8 @@ export default function BarChartComponent (props) {
             value={xAxisDataType}
             onChange={(e) => { setXAxisDataType(e.target.value) }}
           >
-            <MenuItem value="count">{'Raw Count'}</MenuItem>
-            <MenuItem value="perCapita">{'Per Capita (%)'}</MenuItem>
+            <MenuItem value="perCapita">{'Per Capita'}</MenuItem>
+            <MenuItem value="per100">{'Per 100 (%)'}</MenuItem>
           </Select>
         </FormControl>
       </Grid>
@@ -147,7 +147,7 @@ export default function BarChartComponent (props) {
               <CartesianGrid strokeDasharray='3 3' />
               <XAxis dataKey='name' angle={stacked ? 0 : -20} dy={stacked ? 0 : 20} height={stacked ? 40 : 80} />
               <YAxis domain={[0, (yAxisAuto ? 'auto' : yAxisMax)]} />
-              <Tooltip formatter={(value) => (xAxisDataType === 'perCapita' ? value.toFixed(2) : value.toString())} />
+              <Tooltip formatter={(value) => (xAxisDataType === 'perCapita' ? value.toString() : value.toFixed(2))} />
               <Legend />
               {stacked ?
                 enabledSchools.map((school, i) => (

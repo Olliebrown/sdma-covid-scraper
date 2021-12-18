@@ -59,7 +59,7 @@ export default function LineChartComponent (props) {
       for (const key in currentData.data) {
         const match = enabledSchools.find((series) => (key === series.key))
         if (match) {
-          if (xAxisDataType === 'perCapita') {
+          if (xAxisDataType === 'per100') {
             if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
               newItem[key] = 0
             } else {
@@ -114,8 +114,8 @@ export default function LineChartComponent (props) {
             value={xAxisDataType}
             onChange={(e) => { setXAxisDataType(e.target.value) }}
           >
-            <MenuItem value="count">{'Raw Count'}</MenuItem>
-            <MenuItem value="perCapita">{'Per Capita (%)'}</MenuItem>
+            <MenuItem value="perCapita">{'Per Capita'}</MenuItem>
+            <MenuItem value="per100">{'Per 100 (%)'}</MenuItem>
           </Select>
         </FormControl>
       </Grid>
@@ -142,7 +142,7 @@ export default function LineChartComponent (props) {
               <YAxis domain={[0, (yAxisAuto ? 'auto' : yAxisMax)]} />
               <Tooltip
                 formatter={(value) => (
-                  xAxisDataType === 'perCapita' ? value.toFixed(2) : value.toString()
+                  xAxisDataType === 'perCapita' ? value.toString() : value.toFixed(2)
                 )}
                 labelFormatter={formatTimestamp}
               />
