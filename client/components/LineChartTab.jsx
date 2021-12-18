@@ -24,6 +24,7 @@ export default function LineChartTab (props) {
           <KeyboardDatePicker
             fullWidth
             disableToolbar
+            autoOk
             variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
@@ -41,6 +42,7 @@ export default function LineChartTab (props) {
           <KeyboardDatePicker
             fullWidth
             disableToolbar
+            autoOk
             variant="inline"
             format="MM/dd/yyyy"
             margin="normal"

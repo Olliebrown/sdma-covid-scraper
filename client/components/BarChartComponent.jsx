@@ -31,7 +31,7 @@ export default function BarChartComponent (props) {
   const { notesListStyle } = useStyles()
 
   // Local state
-  const [xAxisDataType, setXAxisDataType] = useState('count')
+  const [xAxisDataType, setXAxisDataType] = useState('per100')
   const [yAxisAuto, setYAxisAuto] = useState(true)
   const [yAxisMax, setYAxisMax] = useState(100)
   const handleYAxisMaxChange = (event) => {
