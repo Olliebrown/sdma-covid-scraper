@@ -1,18 +1,36 @@
 import React, { useState } from 'react'
 
 import { useRecoilValue, useRecoilState } from 'recoil'
-import { AvailableDatesState, ActiveDateIndexState, ParsedDataState } from '../data/globalDataState.js'
+import { AvailableDatesState, ActiveDateIndexState, CurrentDataInvalidState, ParsedDataState } from '../data/globalDataState.js'
 
+import { makeStyles } from '@material-ui/core/styles'
 import {
   Grid, FormControl, InputLabel, Select, MenuItem, Paper,
-  Table, TableContainer, TableBody, TableRow, TableCell
+  Table, TableContainer, TableBody, TableRow, TableCell, Typography
 } from '@material-ui/core'
 
 import CSVFileDownload from './CSVFileDownload.jsx'
 
+const useStyles = makeStyles((theme) => ({
+  warningHeading: {
+    backgroundColor: theme.palette.error.dark,
+    color: theme.palette.error.contrastText,
+    marginTop: theme.spacing(2)
+  },
+  warningBody: {
+    borderBottom: '1px solid grey',
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(2)
+  }
+}))
+
 export default function CSVTable (props) {
+  // Deconstruct style classnames
+  const { warningHeading, warningBody } = useStyles()
+
   // Manage global active date state
   const availableDates = useRecoilValue(AvailableDatesState)
+  const currentDataInvalid = useRecoilValue(CurrentDataInvalidState)
   const [activeDateIndex, setActiveDateIndex] = useRecoilState(ActiveDateIndexState)
   const [activeDateValue, setActiveDateValue] = useState(availableDates[activeDateIndex].lastUpdated)
   const handleDateChange = (event) => {
@@ -45,6 +63,15 @@ export default function CSVTable (props) {
           </Select>
         </FormControl>
       </Grid>
+      {currentDataInvalid &&
+        <Grid item xs={12}>
+          <Typography className={warningHeading} variant='h5' component='h2'>
+            {'WARNING:'}
+          </Typography>
+          <Typography className={warningBody} variant='body1'>
+            {'This data is flagged as INVALID (is was likely corrected by an upload with a duplicate date-time)'}
+          </Typography>
+        </Grid>}
       <Grid item xs={12}>
         <TableContainer component={Paper}>
           <Table size="small">

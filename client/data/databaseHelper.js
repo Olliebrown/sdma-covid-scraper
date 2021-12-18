@@ -1,8 +1,8 @@
 import axios from 'axios'
 
-export function getAvailableDates () {
+export function getAvailableDates (includeInvalid) {
   return new Promise((resolve, reject) => {
-    axios.get('/data/list')
+    axios.get(`/data/list${includeInvalid ? '/true' : ''}`)
       .then((response) => {
         if (response?.data) {
           return resolve(response.data)
@@ -55,13 +55,20 @@ export function getDataBetween (startDate, endDate) {
 
 function computeCounts (rawData) {
   return {
-    '4K': Math.round(rawData.data['4K'].CurrentStudentExclusions / (rawData.data['4K'].PCTStudentsExcluded / 100)),
-    Downsville: Math.round(rawData.data.Downsville.CurrentStudentExclusions / (rawData.data.Downsville.PCTStudentsExcluded / 100)),
-    Knapp: Math.round(rawData.data.Knapp.CurrentStudentExclusions / (rawData.data.Knapp.PCTStudentsExcluded / 100)),
-    Oaklawn: Math.round(rawData.data.Oaklawn.CurrentStudentExclusions / (rawData.data.Oaklawn.PCTStudentsExcluded / 100)),
-    RiverHeights: Math.round(rawData.data.RiverHeights.CurrentStudentExclusions / (rawData.data.RiverHeights.PCTStudentsExcluded / 100)),
-    Wakanda: Math.round(rawData.data.Wakanda.CurrentStudentExclusions / (rawData.data.Wakanda.PCTStudentsExcluded / 100)),
-    MiddleSchool: Math.round(rawData.data.MiddleSchool.CurrentStudentExclusions / (rawData.data.MiddleSchool.PCTStudentsExcluded / 100)),
-    HighSchool: Math.round(rawData.data.HighSchool.CurrentStudentExclusions / (rawData.data.HighSchool.PCTStudentsExcluded / 100))
+    '4K': sanitizedCount(rawData.data['4K'].CurrentStudentExclusions, rawData.data['4K'].PCTStudentsExcluded),
+    Downsville: sanitizedCount(rawData.data.Downsville.CurrentStudentExclusions, rawData.data.Downsville.PCTStudentsExcluded),
+    Knapp: sanitizedCount(rawData.data.Knapp.CurrentStudentExclusions, rawData.data.Knapp.PCTStudentsExcluded),
+    Oaklawn: sanitizedCount(rawData.data.Oaklawn.CurrentStudentExclusions, rawData.data.Oaklawn.PCTStudentsExcluded),
+    RiverHeights: sanitizedCount(rawData.data.RiverHeights.CurrentStudentExclusions, rawData.data.RiverHeights.PCTStudentsExcluded),
+    Wakanda: sanitizedCount(rawData.data.Wakanda.CurrentStudentExclusions, rawData.data.Wakanda.PCTStudentsExcluded),
+    MiddleSchool: sanitizedCount(rawData.data.MiddleSchool.CurrentStudentExclusions, rawData.data.MiddleSchool.PCTStudentsExcluded),
+    HighSchool: sanitizedCount(rawData.data.HighSchool.CurrentStudentExclusions, rawData.data.HighSchool.PCTStudentsExcluded)
   }
+}
+
+function sanitizedCount (total, percent) {
+  if (typeof percent === 'number' && Math.abs(percent) < 1e-4) {
+    return Infinity
+  }
+  return Math.round(total / (percent / 100))
 }

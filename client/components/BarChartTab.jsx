@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 
 import { useRecoilValue, useRecoilState } from 'recoil'
-import { AvailableDatesState, ActiveDateIndexState, ActiveDateState } from '../data/globalDataState.js'
+import { ValidDatesState, ActiveDateIndexState, ActiveDateState } from '../data/globalDataState.js'
 import { ShowAdvancedState } from '../data/globalChartState.js'
 
 import {
@@ -23,7 +23,7 @@ export default function BarChartTab (props) {
   const activeDate = useRecoilValue(ActiveDateState)
 
   // Manage global active date state
-  const availableDates = useRecoilValue(AvailableDatesState)
+  const availableDates = useRecoilValue(ValidDatesState)
   const [activeDateIndex, setActiveDateIndex] = useRecoilState(ActiveDateIndexState)
   const [activeDateValue, setActiveDateValue] = useState(availableDates[activeDateIndex].lastUpdated)
   const handleDateChange = (event) => {
@@ -36,7 +36,7 @@ export default function BarChartTab (props) {
 
   return (
     <Grid container spacing={2} align="center">
-      <Grid item xs={10}>
+      <Grid item xs={11}>
         <FormControl fullWidth>
           <InputLabel id="dataDateSelectLabel">{'COVID Data Date'}</InputLabel>
           <Select
@@ -51,7 +51,7 @@ export default function BarChartTab (props) {
           </Select>
         </FormControl>
       </Grid>
-      <Grid item xs={2}>
+      <Grid item container xs={1} direction="column" display="flex" justifyContent="flex-end">
         <Tooltip title="Show Advanced Options">
           <IconButton
             onClick={(e) => { setShowAdvanced(!showAdvanced) }}

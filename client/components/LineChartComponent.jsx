@@ -4,8 +4,8 @@ import PropTypes from 'prop-types'
 import { DateTime } from 'luxon'
 
 import { useRecoilValue } from 'recoil'
-import { CurrentRangeDataState } from '../data/globalRangeDataState.js'
-import { ChartSchoolsState } from '../data/globalChartState.js'
+import { CurrentRangeDataState, NormalizeTimesState } from '../data/globalRangeDataState.js'
+import { ChartSchoolsState, ActiveSingleSeriesState } from '../data/globalChartState.js'
 
 import {
   Box, Grid, TextField, InputAdornment, Checkbox, FormControl,
@@ -24,7 +24,7 @@ function formatTimestamp (timestamp) {
 }
 
 export default function LineChartComponent (props) {
-  const { startDate, endDate, activeSeries } = props
+  const { startDate, endDate } = props
 
   // Local state
   const [xAxisDataType, setXAxisDataType] = useState('count')
@@ -35,20 +35,36 @@ export default function LineChartComponent (props) {
   }
 
   // Global state
+  const normalizeTimes = useRecoilValue(NormalizeTimesState)
   const chartSchools = useRecoilValue(ChartSchoolsState)
   const currentRangeData = useRecoilValue(CurrentRangeDataState)
+  const activeSeries = useRecoilValue(ActiveSingleSeriesState)
   const enabledSchools = chartSchools.filter((school) => (school.enabled))
 
   // Restructure the data
   const dataArray = []
   if (Array.isArray(currentRangeData)) {
     currentRangeData.forEach((currentData) => {
-      const newItem = { date: parseInt(currentData.data.lastUpdated) }
+      const luxonDate = DateTime.fromMillis(parseInt(currentData.data.lastUpdated))
+      const clampedDate = luxonDate.minus({ hours: 12 }).startOf('day').plus({ hours: 12 })
+      if (currentData._id) {
+        console.log(currentData.data.lastUpdatedStr, '->', luxonDate.toISO())
+      }
+      const newItem = {
+        date: (normalizeTimes ?
+          clampedDate.startOf('day').plus({ hours: 12 }).valueOf() :
+          parseInt(currentData.data.lastUpdated))
+      }
+
       for (const key in currentData.data) {
         const match = enabledSchools.find((series) => (key === series.key))
         if (match) {
           if (xAxisDataType === 'perCapita') {
-            newItem[key] = (currentData.data[key][activeSeries] / currentData.counts[key]) * 100
+            if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
+              newItem[key] = 0
+            } else {
+              newItem[key] = (currentData.data[key][activeSeries] / currentData.counts[key]) * 100
+            }
           } else {
             newItem[key] = currentData.data[key][activeSeries]
           }
@@ -91,7 +107,7 @@ export default function LineChartComponent (props) {
       </Grid>
       <Grid item xs={4}>
         <FormControl fullWidth size="small">
-          <InputLabel id="xAxis-dataType-label">{'X-Axis Units'}</InputLabel>
+          <InputLabel id="xAxis-dataType-label">{'Y-Axis Units'}</InputLabel>
           <Select
             labelId="xAxis-dataType-label"
             id="xAxis-dataType"
@@ -121,7 +137,7 @@ export default function LineChartComponent (props) {
                 height={80}
                 interval={0}
                 tickFormatter={formatTimestamp}
-                domain={[startDate.valueOf(), endDate.valueOf()]}
+                domain={[startDate.startOf('day').valueOf(), endDate.endOf('day').valueOf()]}
               />
               <YAxis domain={[0, (yAxisAuto ? 'auto' : yAxisMax)]} />
               <Tooltip
@@ -144,6 +160,5 @@ export default function LineChartComponent (props) {
 
 LineChartComponent.propTypes = {
   startDate: PropTypes.objectOf(DateTime).isRequired,
-  endDate: PropTypes.objectOf(DateTime).isRequired,
-  activeSeries: PropTypes.string.isRequired
+  endDate: PropTypes.objectOf(DateTime).isRequired
 }

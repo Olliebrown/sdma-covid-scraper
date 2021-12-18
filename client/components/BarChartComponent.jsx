@@ -57,7 +57,11 @@ export default function BarChartComponent (props) {
         if (match) {
           newItem[match.key] = currentData.data[key][series.key]
           if (xAxisDataType === 'perCapita') {
-            newItem[match.key] = (newItem[match.key] / currentData.counts[key]) * 100
+            if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
+              newItem[match.key] = 0
+            } else {
+              newItem[match.key] = (newItem[match.key] / currentData.counts[key]) * 100
+            }
           }
         }
       }
@@ -71,7 +75,11 @@ export default function BarChartComponent (props) {
         if (xAxisDataType === 'perCapita') {
           for (const prop in newItem) {
             if (prop !== 'name' && typeof newItem[prop] === 'number') {
-              newItem[prop] = (newItem[prop] / currentData.counts[key]) * 100
+              if (currentData.counts[key] === Infinity || currentData.counts[key] === 0) {
+                newItem[prop] = 0
+              } else {
+                newItem[prop] = (newItem[prop] / currentData.counts[key]) * 100
+              }
             }
           }
         }
@@ -115,7 +123,7 @@ export default function BarChartComponent (props) {
       </Grid>
       <Grid item xs={4}>
         <FormControl fullWidth size="small">
-          <InputLabel id="xAxis-dataType-label">{'X-Axis Units'}</InputLabel>
+          <InputLabel id="xAxis-dataType-label">{'Y-Axis Units'}</InputLabel>
           <Select
             labelId="xAxis-dataType-label"
             id="xAxis-dataType"

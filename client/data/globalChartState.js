@@ -1,4 +1,4 @@
-import { atom } from 'recoil'
+import { atom, selector } from 'recoil'
 import PropTypes from 'prop-types'
 
 export const SelectDataShape = {
@@ -31,6 +31,39 @@ export const ChartSeriesState = atom({
       })
     }
   ]
+})
+
+export const SingleSeriesState = atom({
+  key: 'SingleSeriesState',
+  default: [
+    { key: 'StudentCurrentPositive', label: 'Student Active Positive', color: '#f05365', enabled: false },
+    { key: 'StudentClosedPositive', label: 'Student Closed Positive', color: '#2d7dd2', enabled: false },
+    { key: 'CurrentStudentExclusions', label: 'Student Exclusions', color: '#b388eb', enabled: true },
+    { key: 'PCTStudentsExcluded', label: 'Student Exclusions (%)', color: '#513c2c', enabled: false },
+    { key: 'StaffCurrentPositive', label: 'Staff Active Positive', color: '#c5afa0', enabled: false },
+    { key: 'StaffClosedPositive', label: 'Staff Closed Positive', color: '#ff6b35', enabled: false },
+    { key: 'CurrentStaffExclusions', label: 'Staff Exclusions', color: '#15b097', enabled: false }
+  ],
+  effects_UNSTABLE: [
+    ({ onSet }) => {
+      onSet(newValue => {
+        console.debug('Single Series Changed:', newValue)
+      })
+    }
+  ]
+})
+
+export const ActiveSingleSeriesState = selector({
+  key: 'ActiveSingleSeriesState',
+  get: ({ get }) => {
+    const seriesData = get(SingleSeriesState)
+    for (let i = 0; i < seriesData.length; i++) {
+      if (seriesData[i].enabled) {
+        return seriesData[i].key
+      }
+    }
+    return ''
+  }
 })
 
 export const ChartSchoolsState = atom({

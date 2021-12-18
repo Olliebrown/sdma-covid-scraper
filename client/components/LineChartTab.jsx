@@ -1,31 +1,30 @@
-import React, { useState } from 'react'
+import React from 'react'
 
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { StartDateState, EndDateState } from '../data/globalRangeDataState.js'
-import { ChartSeriesState } from '../data/globalChartState.js'
+import { useRecoilState } from 'recoil'
+import { StartDateState, EndDateState, NormalizeTimesState } from '../data/globalRangeDataState.js'
 
-import LuxonUtils from '@date-io/luxon'
+import CustomLuxonUtils from './CustomLuxonUtils.js'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 
-import { Grid } from '@material-ui/core'
+import { Grid, FormControlLabel, Checkbox } from '@material-ui/core'
 
-import DataEnableSelect from './DataEnableSelect.jsx'
 import LineChartComponent from './LineChartComponent.jsx'
+import ChartDataNavBar from './ChartDataNavBar.jsx'
 
 export default function LineChartTab (props) {
   // Subscribe to changes in important global state
-  const chartSeries = useRecoilValue(ChartSeriesState)
   const [startDate, setStartDate] = useRecoilState(StartDateState)
   const [endDate, setEndDate] = useRecoilState(EndDateState)
-
-  const [selectedSeries, setSelectedSeries] = useState('StudentCurrentPositive')
+  const [normalizeTimes, setNormalizeTimes] = useRecoilState(NormalizeTimesState)
 
   return (
     <Grid container spacing={2} align="center">
-      <MuiPickersUtilsProvider utils={LuxonUtils}>
-        <Grid item xs={12} md={3}>
+      <MuiPickersUtilsProvider utils={CustomLuxonUtils}>
+        <Grid item xs={12} md={5}>
           <KeyboardDatePicker
             fullWidth
+            disableToolbar
+            variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
             id="startDatePicker"
@@ -38,9 +37,11 @@ export default function LineChartTab (props) {
             }}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid item xs={10} md={5}>
           <KeyboardDatePicker
             fullWidth
+            disableToolbar
+            variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
             id="endDatePicker"
@@ -53,21 +54,24 @@ export default function LineChartTab (props) {
             }}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <DataEnableSelect
-            name='dataSeries'
-            labelText='Select Data Series'
-            entries={chartSeries}
-            value={selectedSeries}
-            handleChange={(e) => { setSelectedSeries(e.target.value) }}
-            size="small"
-            single
+        <Grid item container xs={2} direction="column" display="flex" justifyContent="flex-end">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={normalizeTimes}
+                onChange={(e) => { setNormalizeTimes(e.target.checked) }}
+                color="default"
+              />
+            }
+            label="Normalize Times"
           />
         </Grid>
-
+        <Grid item xs={12}>
+          <ChartDataNavBar singleSeries />
+        </Grid>
       </MuiPickersUtilsProvider>
       {!startDate.invalid && !endDate.invalid &&
-        <LineChartComponent startDate={startDate} endDate={endDate} activeSeries={selectedSeries} />}
+        <LineChartComponent startDate={startDate} endDate={endDate} normalizeTimes={normalizeTimes} />}
     </Grid>
   )
 }

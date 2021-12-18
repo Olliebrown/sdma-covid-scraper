@@ -15,6 +15,7 @@ const router = new Express.Router()
 // Generator for range of dates
 function * days (interval) {
   let cursor = interval.start.startOf('day')
+  cursor.setZone('local')
   while (cursor <= interval.end) {
     yield cursor
     cursor = cursor.plus({ days: 1 })
@@ -23,14 +24,22 @@ function * days (interval) {
 
 // ******* API routes **************
 // List all data entries in the database
-router.get('/list', (req, res) => {
+router.get('/list/:includeInvalid?', (req, res) => {
+  // Setup match-find query
+  const findQuery = { invalid: false }
+  if (req.params.includeInvalid) {
+    delete findQuery.invalid
+  }
+
   runQuery((db) => {
     db.collection('data').aggregate([
+      { $match: findQuery },
       { $sort: { 'data.lastUpdated': -1 } },
       {
         $project: {
           lastUpdated: '$data.lastUpdated',
-          lastUpdatedStr: '$data.lastUpdatedStr'
+          lastUpdatedStr: '$data.lastUpdatedStr',
+          invalid: 1
         }
       }
     ]).toArray()
@@ -38,7 +47,7 @@ router.get('/list', (req, res) => {
         // Convert ISO string time to epoch milliseconds
         const remapped = data.map((item) => ({
           ...item,
-          lastUpdated: (new Date(item.lastUpdated)).valueOf()
+          lastUpdated: sanitizeTimezone(item.lastUpdated)
         }))
         return res.send(remapped)
       })
@@ -49,7 +58,7 @@ router.get('/list', (req, res) => {
   })
 })
 
-router.get('/between/:startDate/:endDate', (req, res) => {
+router.get('/between/:startDate/:endDate/:includeInvalid?', (req, res) => {
   // Validate the given dates
   const startDate = new Date(parseInt(req.params.startDate))
   const endDate = new Date(parseInt(req.params.endDate))
@@ -57,63 +66,75 @@ router.get('/between/:startDate/:endDate', (req, res) => {
     return res.status(400).send({ error: 'Bad request, invalid date range' })
   }
 
+  // Clamp end date
+  const clampedEndDate = DateTime.fromJSDate(endDate).endOf('day').toJSDate()
+
+  // Setup find query
+  const findQuery = {
+    'data.lastUpdated': {
+      $gte: startDate,
+      $lte: clampedEndDate
+    },
+    invalid: false
+  }
+  if (req.params.includeInvalid) {
+    delete findQuery.invalid
+  }
+
   // Attempt to locate the data
   runQuery((db) => {
-    db.collection('data').find({
-      'data.lastUpdated': {
-        $gte: startDate,
-        $lte: endDate
-      }
-    }).sort({ 'data.lastUpdated': 1 }).toArray((err, docs) => {
-      // Check for errors
-      if (err) {
-        console.error('Failed to find data in range', startDate, 'to', endDate)
-        console.error(err)
-        return res.status(500).send({ error: 'Internal server error' })
-      }
+    db.collection('data').find(findQuery)
+      .sort({ 'data.lastUpdated': 1 })
+      .toArray((err, docs) => {
+        // Check for errors
+        if (err) {
+          console.error('Failed to find data in range', startDate, 'to', clampedEndDate)
+          console.error(err)
+          return res.status(500).send({ error: 'Internal server error' })
+        }
 
-      // Check for empty response
-      if (!Array.isArray(docs) || docs.length === 0) {
-        return res.send([])
-      }
+        // Check for empty response
+        if (!Array.isArray(docs) || docs.length === 0) {
+          return res.send([])
+        }
 
-      // Sanitize the dates
-      docs.forEach((curDoc) => {
-        curDoc.timestamp = (new Date(curDoc?.timestamp)).valueOf()
-        curDoc.data.lastUpdated = (new Date(curDoc?.data?.lastUpdated)).valueOf()
+        // Sanitize the dates
+        docs.forEach((curDoc) => {
+          curDoc.timestamp = (new Date(curDoc?.timestamp)).valueOf()
+          curDoc.data.lastUpdated = sanitizeTimezone(curDoc?.data?.lastUpdated)
+        })
+
+        // Pad the data with missing days
+        const interval = Interval.fromDateTimes(
+          DateTime.fromJSDate(startDate).setZone('local'),
+          DateTime.fromJSDate(endDate).setZone('local')
+        )
+
+        const paddedDocs = []
+        let docIndex = 0
+        for (const d of days(interval)) {
+          // Remember length
+          const startLength = paddedDocs.length
+
+          // Add all docs that match the given day
+          let curDoc = docs[docIndex]
+          let lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
+          while (lastUpdated.startOf('day').toMillis() === d.toMillis()) {
+            paddedDocs.push(curDoc)
+            docIndex++
+            curDoc = docs[docIndex]
+            lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
+          }
+
+          // If none added, push a null doc (weekends only)
+          if (paddedDocs.length === startLength && d.weekday >= 6) {
+            paddedDocs.push(makeNullDoc(d))
+          }
+        }
+
+        // Return the data
+        return res.send(paddedDocs)
       })
-
-      // Pad the data with missing days
-      const interval = Interval.fromDateTimes(
-        DateTime.fromJSDate(startDate),
-        DateTime.fromJSDate(endDate)
-      )
-
-      const paddedDocs = []
-      let docIndex = 0
-      for (const d of days(interval)) {
-        // Remember length
-        const startLength = paddedDocs.length
-
-        // Add all docs that match the given day
-        let curDoc = docs[docIndex]
-        let lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
-        while (lastUpdated.startOf('day').toMillis() === d.toMillis()) {
-          paddedDocs.push(curDoc)
-          docIndex++
-          curDoc = docs[docIndex]
-          lastUpdated = DateTime.fromMillis(curDoc?.data?.lastUpdated || 0)
-        }
-
-        // If none added, push a null
-        if (paddedDocs.length === startLength) {
-          paddedDocs.push(makeNullDoc(d))
-        }
-      }
-
-      // Return the data
-      return res.send(paddedDocs)
-    })
   })
 })
 
@@ -129,7 +150,7 @@ router.get('/:id', (req, res) => {
       .then((dataRecord) => {
         // Sanitize the dates
         dataRecord.timestamp = (new Date(dataRecord?.timestamp)).valueOf()
-        dataRecord.data.lastUpdated = (new Date(dataRecord?.data?.lastUpdated)).valueOf()
+        dataRecord.data.lastUpdated = sanitizeTimezone(dataRecord?.data?.lastUpdated)
 
         // Return the data
         return res.send(dataRecord)
@@ -141,6 +162,10 @@ router.get('/:id', (req, res) => {
       })
   })
 })
+
+function sanitizeTimezone (isoStringWithoutTimezone) {
+  return DateTime.fromJSDate(new Date(isoStringWithoutTimezone)).toMillis()
+}
 
 const EMPTY_DATA = {
   StudentCurrentPositive: null,
@@ -176,7 +201,8 @@ function makeNullDoc (date) {
       TOTALPERCENTAGE: EMPTY_DATA,
       notes: []
     },
-    rawCsv: ''
+    rawCsv: '',
+    invalid: true
   }
 }
 

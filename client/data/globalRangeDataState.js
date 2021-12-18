@@ -15,6 +15,12 @@ export const EndDateState = atom({
   default: DateTime.local().startOf('week').plus({ days: 4 })
 })
 
+// Should times be normalized to noon on each day?
+export const NormalizeTimesState = atom({
+  key: 'NormalizeTimesState',
+  default: true
+})
+
 export const CurrentRangeDataState = selector({
   key: 'CurrentRangeDataState',
   get: async ({ get }) => {

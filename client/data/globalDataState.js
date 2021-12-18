@@ -3,16 +3,52 @@ import { atom, selector } from 'recoil'
 import { getAvailableDates, getData } from './databaseHelper'
 import Papa from 'papaparse'
 
-export const AvailableDatesState = atom({
-  key: 'AvailableDatesState',
+export const AvailableDataState = atom({
+  key: 'AvailableDataState',
   default: [],
   effects_UNSTABLE: [
     ({ setSelf }) => {
       // Initialize from asynchronous DB retrieval
-      const availableDatesPromise = getAvailableDates()
+      const availableDatesPromise = getAvailableDates(true)
       setSelf(availableDatesPromise)
     }
   ]
+})
+
+export const AvailableDatesState = selector({
+  key: 'AvailableDatesState',
+  get: ({ get }) => {
+    const allAvailableData = get(AvailableDataState)
+    if (Array.isArray(allAvailableData)) {
+      const keyCounter = {}
+      return allAvailableData.map((item) => {
+        // Ensure all keys (last updated string and millis) are unique
+        const key = item.lastUpdatedStr
+        keyCounter[key] = (!keyCounter[key] ? 1 : keyCounter[key] + 1)
+        if (keyCounter[key] <= 1) {
+          return item
+        } else {
+          return {
+            ...item,
+            lastUpdatedStr: key + '-' + keyCounter[key],
+            lastUpdated: item.lastUpdated + keyCounter[key]
+          }
+        }
+      })
+    }
+    return []
+  }
+})
+
+export const ValidDatesState = selector({
+  key: 'ValidDatesState',
+  get: ({ get }) => {
+    const allAvailableData = get(AvailableDataState)
+    if (Array.isArray(allAvailableData)) {
+      return allAvailableData.filter((item) => (!item.invalid))
+    }
+    return []
+  }
 })
 
 // Current date or end date when examining a range
@@ -28,7 +64,7 @@ export const ActiveDateState = selector({
     const activeIndex = get(ActiveDateIndexState)
 
     if (activeIndex >= 0 && activeIndex < availableDates.length) {
-      return availableDates[activeIndex].lastUpdated
+      return availableDates[activeIndex].lastUpdatedStr
     }
 
     return null
@@ -67,6 +103,14 @@ export const CurrentDataState = selector({
       console.error('Date ID is null when looking for current data state')
       return null
     }
+  }
+})
+
+export const CurrentDataInvalidState = selector({
+  key: 'CurrentDataInvalidState',
+  get: ({ get }) => {
+    const currentData = get(CurrentDataState)
+    return currentData.invalid
   }
 })
 
