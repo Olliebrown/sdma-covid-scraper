@@ -114,7 +114,7 @@ export function parseCSVToData (csvData) {
 export function addToDB (data, csvData) {
   return new Promise((resolve, reject) => {
     runQuery((db) => {
-      db.collection('data').insertOne({ timestamp: DateTime.local(), data, rawCsv: csvData })
+      db.collection('data').insertOne({ timestamp: DateTime.local(), data, rawCsv: csvData, invalid: false })
         .then((data) => { return resolve(data.insertedId) })
         .catch((err) => {
           console.error('Failed to save to DB', err)

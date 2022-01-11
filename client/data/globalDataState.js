@@ -45,7 +45,9 @@ export const ValidDatesState = selector({
   get: ({ get }) => {
     const allAvailableData = get(AvailableDataState)
     if (Array.isArray(allAvailableData)) {
-      return allAvailableData.filter((item) => (!item.invalid))
+      return allAvailableData.filter((item) => (
+        item.invalid === false || item.invalid === null || item.invalid === undefined)
+      )
     }
     return []
   }
@@ -110,7 +112,7 @@ export const CurrentDataInvalidState = selector({
   key: 'CurrentDataInvalidState',
   get: ({ get }) => {
     const currentData = get(CurrentDataState)
-    return currentData.invalid
+    return currentData.invalid || false
   }
 })
 

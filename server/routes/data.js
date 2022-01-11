@@ -26,7 +26,7 @@ function * days (interval) {
 // List all data entries in the database
 router.get('/list/:includeInvalid?', (req, res) => {
   // Setup match-find query
-  const findQuery = { invalid: false }
+  const findQuery = { invalid: { $in: [false, null, undefined] } }
   if (req.params.includeInvalid) {
     delete findQuery.invalid
   }
@@ -75,7 +75,7 @@ router.get('/between/:startDate/:endDate/:includeInvalid?', (req, res) => {
       $gte: startDate,
       $lte: clampedEndDate
     },
-    invalid: false
+    invalid: { $in: [false, null, undefined] }
   }
   if (req.params.includeInvalid) {
     delete findQuery.invalid
