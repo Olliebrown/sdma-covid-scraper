@@ -3,6 +3,7 @@ import { runQuery, closeClient } from '../mongo/dbConnect.js'
 
 import CSVParse from 'csv-parse'
 import { DateTime } from 'luxon'
+import { ObjectId } from 'mongodb'
 
 // Re-export closeClient
 export { closeClient }
@@ -128,6 +129,19 @@ export function addToDB (data, csvData) {
   })
 }
 
+export function updateDocument (newData) {
+  return new Promise((resolve, reject) => {
+    runQuery((db) => {
+      db.collection('data').replaceOne({ _id: new ObjectId(newData._id) }, newData)
+        .then((data) => { return resolve() })
+        .catch((err) => {
+          console.error('Failed to update doc', err)
+          return reject(err)
+        })
+    })
+  })
+}
+
 export function getLatestFromDB () {
   return new Promise((resolve, reject) => {
     runQuery((db) => {
@@ -154,6 +168,21 @@ export function getDataForDateFromDB (lastUpdated) {
         .catch((err) => {
           console.error('Failed to retrieve latest entry from DB', err)
           return reject(err)
+        })
+    })
+  })
+}
+
+export function getBadDataForDateFromDB (lastUpdated) {
+  return new Promise((resolve, reject) => {
+    runQuery((db) => {
+      db.collection('data').find({ 'data.lastUpdated': { $lt: DateTime.fromISO('1990-01-01T00:00:00.000Z') } })
+        .toArray((err, data) => {
+          if (err) {
+            console.error('Failed to retrieve list of bad entries', err)
+            return reject(err)
+          }
+          return resolve(data)
         })
     })
   })
