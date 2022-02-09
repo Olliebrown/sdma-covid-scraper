@@ -4,6 +4,7 @@
   "description": "A tool to scrape, save, and explore the daily covid data form the SDMA covid dashboard.",
   "main": "src/main.js",
   "scripts": {
+    "fix": "node server/fixBadData.js",
     "start": "node server/main.js",
     "dev": "nodemon --watch server server/main.js",
     "build": "npm run client",
