@@ -77,6 +77,10 @@ export function parseCSVToData (csvData) {
             if (lastUpdatedStr.match(/:(.*)/)) {
               lastUpdatedStr = lastUpdatedStr.match(/:(.*)/)[1].trim()
             }
+
+            // Fix unfortunate misspelling
+            lastUpdatedStr = lastUpdatedStr.replace('Feburary', 'February')
+
             lastDataRow = row
             break
           }
